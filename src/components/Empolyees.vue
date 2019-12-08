@@ -1,15 +1,33 @@
 <template>
   <div>
-   dsadasdasasdasdasd
+    <div v-for="employee in list" v-bind:key="employee.id">
+      {{employee}}
+    </div>
   </div>
 </template>
 
 <script>
+
+import axios from 'axios';
+
 export default {
-  name: "HelloWorld",
-  props: {
-    msg: String
-  }
+  name: "employees",
+  data() {
+    return {
+      list: [],
+      errors: []
+    }
+  }, 
+   created() {
+    axios.get(`http://dummy.restapiexample.com/api/v1/employees`)
+    .then(response => {
+      // JSON responses are automatically parsed.
+      this.list = response.data
+    })
+    .catch(e => {
+      this.errors.push(e)
+    })
+   }, 
 };
 </script>
 
