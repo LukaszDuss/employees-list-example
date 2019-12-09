@@ -74,7 +74,7 @@
         placeholder="Please enter employee age..."
       />
       <div class="w-1/12">
-        <button @click="toggleEditing(employee)">
+        <button @click="createEmployee()">
           <Zondicon icon="add-outline" class="flex mx-2 w-4 fill-current" />
         </button>
       </div>
@@ -93,7 +93,7 @@ export default {
       newEmployee: {
         name: null,
         salary: null,
-        age: null,
+        age: null
       },
       limit: 20,
       list: [],
@@ -129,14 +129,21 @@ export default {
     //       this.errors.push(error);
     //     });
     // },
-    async createEmployee(newEmployee) {
+    async createEmployee() {
       await axios
-        .post(`http://dummy.restapiexample.com/api/v1/create`, newEmployee)
+        .post(`http://dummy.restapiexample.com/api/v1/create`, this.newEmployee)
         .then(response => {
           this.list.push(response.data);
         })
         .catch(error => {
           this.errors.push(error);
+        })
+        .finally(() => {
+          this.newEmployee = {
+            name: null,
+            salary: null,
+            age: null
+          };
         });
     },
     async updateEmployee(employee) {
