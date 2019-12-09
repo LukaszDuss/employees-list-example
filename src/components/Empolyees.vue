@@ -1,60 +1,81 @@
 <template>
   <div>
-    <div class="flex justify-between object-center bg-gray-500 m-2 py-4 rounded">
+    <div class="flex justify-between object-center bg-gray-600 m-2 py-4 rounded">
       <span class="w-1/12">ID</span>
       <span class="w-1/3">Employee Name</span>
       <span class="w-1/6">Employee Salary</span>
       <span class="w-1/6">Employee Age</span>
       <div class="w-1/12"></div>
     </div>
-    <div v-if="!list.lenght">
-      NO EMPLOYEES 
-    </div>
+    <div v-if="!list.length">Loading...</div>
     <div
-      v-for="(employee, index) in (list.slice(0, limit))"
-      v-bind:key="employee.id"
+      v-for="(employee, index) in list.slice(0, limit)"
+      :key="index"
       class="flex justify-between object-center bg-gray-300 m-2 p-2 rounded"
     >
       <span class="w-1/12">{{employee.id}}</span>
-      <span
-        v-if="!list[index].updating"
-        class="w-1/3"
-      >{{employee.employee_name}} {{list[index].updating}}</span>
+      <span v-if="!list[index].updating" class="w-1/3">{{employee.employee_name}}</span>
       <input
         v-else
-        v-model="list[index].name"
-        class="w-1/3"
+        v-model="employee.name"
+        class="w-1/3 rounded"
         type="text"
         placeholder="Please enter employee name..."
       />
-      <span v-if="!list[index].updating" class="w-1/6">{{employee.employee_salary}}</span>
+      <span v-if="!employee.updating" class="w-1/6">{{employee.employee_salary}}</span>
       <input
         v-else
-        v-model="list[index].salary"
-        class="w-1/6"
+        v-model="employee.salary"
+        class="w-1/6 rounded"
         type="text"
         placeholder="Please enter employee salary..."
       />
-      <span v-if="!list[index].updating" class="w-1/6">{{employee.employee_age}}</span>
+      <span v-if="!employee.updating" class="w-1/6">{{employee.employee_age}}</span>
       <input
         v-else
-        v-model="list[index].age"
-        class="w-1/6"
+        v-model="employee.age"
+        class="w-1/6 rounded"
         type="text"
         placeholder="Please enter employee age..."
       />
       <div class="w-1/12">
-        <button v-if="!list[index].updating" @click="list[index].updating = true">
+        <button v-if="!employee.updating" @click="toggleEditing(employee)">
           <Zondicon icon="cog" class="flex mx-2 w-4 fill-current" />
         </button>
-        <button v-else @click="updateEmployee(index)">
+        <button v-else @click="updateEmployee(employee)">
           <Zondicon icon="checkmark-outline" class="flex mx-2 w-4 fill-current" />
         </button>
-        <button v-if="!list[index].updating" @click="deleteEmployee(employee.id)">
+        <button v-if="!employee.updating" @click="deleteEmployee(employee.id)">
           <Zondicon icon="close-outline" class="flex mx-2 w-4 fill-current" />
         </button>
-        <button v-else @click="list[index].updating = false">
+        <button v-else @click="toggleEditing(employee)">
           <Zondicon icon="block" class="flex mx-2 w-4 fill-current" />
+        </button>
+      </div>
+    </div>
+    <div class="flex justify-between object-center bg-gray-400 m-2 py-2 rounded">
+      <span class="w-1/12"></span>
+      <input
+        v-model="newEmployee.name"
+        class="w-1/3 rounded"
+        type="text"
+        placeholder="Please enter employee name..."
+      />
+      <input
+        v-model="newEmployee.salary"
+        class="w-1/6 rounded"
+        type="text"
+        placeholder="Please enter employee salary..."
+      />
+      <input
+        v-model="newEmployee.age"
+        class="w-1/6 rounded"
+        type="text"
+        placeholder="Please enter employee age..."
+      />
+      <div class="w-1/12">
+        <button @click="toggleEditing(employee)">
+          <Zondicon icon="add-outline" class="flex mx-2 w-4 fill-current" />
         </button>
       </div>
     </div>
@@ -69,6 +90,11 @@ export default {
   name: "employees",
   data() {
     return {
+      newEmployee: {
+        name: null,
+        salary: null,
+        age: null,
+      },
       limit: 20,
       list: [],
       errors: []
@@ -87,52 +113,57 @@ export default {
         .then(response => {
           this.list = response.data;
         })
-        .catch(e => {
-          this.errors.push(e);
-        });
-      this.update();
-    },
-    async getEmployee(id) {
-      await axios
-        .get(`http://dummy.restapiexample.com/api/v1/employees/${id}`)
-        .then(response => {
-          this.list = this.list.filter(employee =>
-            employee.id == id ? (employee = response.data) : employee
-          );
-        })
-        .catch(e => {
-          this.errors.push(e);
+        .catch(error => {
+          this.errors.push(error);
         });
     },
+    // async getEmployee(id) {
+    //   await axios
+    //     .get(`http://dummy.restapiexample.com/api/v1/employees/${id}`)
+    //     .then(response => {
+    //       this.list = this.list.filter(employee =>
+    //         employee.id == id ? (employee = response.data) : employee
+    //       );
+    //     })
+    //     .catch(error => {
+    //       this.errors.push(error);
+    //     });
+    // },
     async createEmployee(newEmployee) {
       await axios
         .post(`http://dummy.restapiexample.com/api/v1/create`, newEmployee)
         .then(response => {
           this.list.push(response.data);
         })
-        .catch(e => {
-          this.errors.push(e);
+        .catch(error => {
+          this.errors.push(error);
         });
     },
-    async updateEmployee(index) {
-      this.list[index].updating = false;
+    async updateEmployee(employee) {
+      !employee.name ? (employee.name = employee.employee_name) : "";
+      !employee.salary ? (employee.salary = employee.employee_salary) : "";
+      !employee.age ? (employee.age = employee.employee_age) : "";
       let data = {
-        name: this.list[index].name,
-        salary: this.list[index].salary,
-        age: this.list[index].age
+        name: employee.name,
+        salary: employee.salary,
+        age: employee.age
       };
       await axios
         .put(
-          `http://dummy.restapiexample.com/api/v1/update/${this.list[index].id}`,
+          `http://dummy.restapiexample.com/api/v1/update/${employee.id}`,
           data
         )
         .then(response => {
-          this.list[index].employee_name = response.data.name;
-          this.list[index].employee_salary = response.data.salary;
-          this.list[index].employee_age = response.data.age;
+          employee.employee_name = response.data.name;
+          employee.employee_salary = response.data.salary;
+          employee.employee_age = response.data.age;
         })
-        .catch(e => {
-          this.errors.push(e);
+        .catch(error => {
+          this.errors.push(error);
+        })
+        .finally(() => {
+          this.toggleEditing(employee);
+          this.$forceUpdate();
         });
     },
     async deleteEmployee(id) {
@@ -143,31 +174,19 @@ export default {
             employee.id !== id ? employee : ""
           );
         })
-        .catch(e => {
-          this.errors.push(e);
+        .catch(error => {
+          this.errors.push(error);
+        })
+        .finally(() => {
+          this.$forceUpdate();
         });
     },
-    async update() {
-      // this.$$forceUpdate();
+    toggleEditing(employee) {
+      employee.updating === null ? (employee.updating = false) : "";
+      employee.updating = !employee.updating;
+      this.$forceUpdate();
     }
   }
 };
 </script>
 
-
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
