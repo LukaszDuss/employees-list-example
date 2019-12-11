@@ -1,26 +1,54 @@
 <template>
   <div class="p-4">
     <div
-      class="flex justify-between items-center text-center text-xl bg-gray-500 m-2 py-4 px-2 rounded"
+      class="flex font-medium justify-between items-center text-center text-gray-800 text-xl bg-gray-500 m-2 py-4 px-2 shadow-md rounded"
     >
       <span class="w-1/12">ID</span>
       <span class="w-1/3">Employee Name</span>
-      <span class="w-1/6">Employee Salary</span>
-      <span class="w-1/6">Employee Age</span>
-      <div class="w-1/12"></div>
+      <span class="w-1/6 flex flex-row justify-center">
+        Employee Salary
+        <div class="flex flex-col items-center pl-2">
+          <button class>
+            <Zondicon icon="cheveron-up" class="fill-current w-4" />
+          </button>
+          <button class>
+            <Zondicon icon="cheveron-down" class="fill-current w-4" />
+          </button>
+        </div>
+      </span>
+      <span class="w-1/6 flex flex-row justify-center">
+        Employee Age
+        <div class="flex flex-col pl-2">
+          <button class>
+            <Zondicon icon="cheveron-up" class="fill-current w-4" />
+          </button>
+          <button class>
+            <Zondicon icon="cheveron-down" class="fill-current w-4" />
+          </button>
+        </div>
+      </span>
+      <div class="w-1/6 flex self-stretch justify-center">
+        <input
+        v-model="search"
+        class="flex h-8 text-sm rounded"
+        type="text"
+        placeholder="Search.."
+      />
+      <Zondicon v-show="!search" icon="search" class="w-6 fill-current text-gray-700 -ml-8" />
+      </div>
     </div>
-    <div v-if="!list.length">Loading...</div>
+    <div class="items-center text-center p-8" v-if="!list.length">Loading content...</div>
     <div
-      v-for="(employee, index) in list.slice(page*limit-limit, page*limit)"
+      v-for="(employee, index) in currentPage"
       :key="index"
-      class="flex justify-between items-center text-center text-gray-800 bg-gray-300 mx-2 my-1 p-2 rounded"
+      class="flex justify-between items-center text-center text-gray-800 bg-gray-300 m-2 px-2 shadow-md rounded"
     >
       <span class="w-1/12">{{employee.id}}</span>
       <span v-if="!employee.updating" class="w-1/3">{{employee.employee_name}}</span>
       <input
         v-else
         v-model="employee.name"
-        class="w-1/3 text-sm rounded"
+        class="w-1/3 h-8 text-sm rounded"
         type="text"
         placeholder="Please enter employee name..."
       />
@@ -28,7 +56,7 @@
       <input
         v-else
         v-model="employee.salary"
-        class="w-1/6 text-sm rounded"
+        class="w-1/6 h-8 text-sm rounded"
         type="text"
         placeholder="Please enter employee salary..."
       />
@@ -36,27 +64,41 @@
       <input
         v-else
         v-model="employee.age"
-        class="w-1/6 text-sm rounded"
+        class="w-1/6 h-8 text-sm rounded"
         type="text"
         placeholder="Please enter employee age..."
       />
-      <div class="w-1/12 text-gray-700">
-        <button v-if="!employee.updating" @click="toggleEditing(employee)">
-          <Zondicon icon="cog" class="flex mx-2 w-6 fill-current" />
+      <div class="flex w-1/6 text-gray-700 justify-end px-2">
+        <button
+          v-if="!employee.updating"
+          @click="toggleEditing(employee)"
+          class="focus:outline-none p-2"
+        >
+          <Zondicon icon="cog" class="w-6 fill-current text-gray-700 hover:text-gray-600" />
         </button>
-        <button v-else @click="updateEmployee(employee)">
-          <Zondicon icon="checkmark-outline" class="flex text-green-500 mx-2 w-6 fill-current" />
+        <button v-else @click="updateEmployee(employee)" class="focus:outline-none p-2">
+          <Zondicon
+            icon="checkmark-outline"
+            class="w-6 fill-current text-green-500 hover:text-green-400"
+          />
         </button>
-        <button v-if="!employee.updating" @click="deleteEmployee(employee.id)">
-          <Zondicon icon="trash" class="flex mx-2 w-6 fill-current" />
+        <button
+          v-if="!employee.updating"
+          @click="deleteEmployee(employee.id)"
+          class="focus:outline-none p-2"
+        >
+          <Zondicon icon="trash" class="w-6 fill-current text-gray-700 hover:text-gray-600" />
         </button>
-        <button v-else @click="toggleEditing(employee)">
-          <Zondicon icon="close-outline" class="flex text-red-500 flex mx-2 w-6 fill-current" />
+        <button v-else @click="toggleEditing(employee)" class="focus:outline-none p-2">
+          <Zondicon icon="close-outline" class="w-6 fill-current text-red-500 hover:text-red-400" />
         </button>
       </div>
     </div>
-    <div class="flex justify-between object-center items-center bg-gray-400 m-2 p-2 rounded">
-      <span class="w-1/12 text-sm"></span>
+    <div
+      v-if="list.length"
+      class="flex justify-between items-center text-gray-800 bg-gray-400 m-2 p-2 shadow-md rounded"
+    >
+      <span class="w-1/12 text-sm text-center">Add new:</span>
       <input
         v-model="newEmployee.name"
         class="w-1/3 h-8 text-sm rounded"
@@ -75,25 +117,26 @@
         type="text"
         placeholder="Please enter employee age..."
       />
-      <div class="flex w-1/12">
-        <button @click="createEmployee()">
-          <Zondicon icon="add-solid" class="flex text-green-500 mx-6 w-6 fill-current" />
+      <div class="flex w-1/6 justify-end px-2">
+        <button @click="createEmployee()" class="focus:outline-none p-2">
+          <Zondicon icon="add-solid" class="w-6 fill-current text-green-500 hover:text-green-400" />
         </button>
       </div>
     </div>
     <paginate
+      v-if="list.length"
       class="flex flex-row w-1/4 justify-between items-center mx-auto"
       v-model="page"
-      :page-count="Math.ceil(list.length/limit)"
+      :page-count="Math.ceil(this.list.length/limit)"
       :page-range="3"
       :margin-pages="2"
       :prev-text="'Prev'"
       :next-text="'Next'"
       :container-class="'text-gray-500'"
-      :active-class="'text-gray-100 font-bold bg-blue-500 rounded px-2'"
-      :prev-class="'text-gray-200 bg-gray-600 rounded p-1 px-2'"
-      :page-class="''"
-      :next-class="'text-gray-200 bg-gray-600 rounded p-1 px-2'"
+      :active-class="'text-gray-100 font-bold bg-blue-500 rounded px-2 focus:outline-nones'"
+      :prev-class="'text-gray-200 bg-gray-600 rounded p-1 px-2 focus:outline-none'"
+      :page-class="'focus:outline-none'"
+      :next-class="'text-gray-200 bg-gray-600 rounded p-1 px-2 focus:outline-none'"
     >
       <span slot="prevContent">Changed previous button</span>
       <span slot="nextContent">Changed next button</span>
@@ -105,6 +148,14 @@
         </svg>
       </span>
     </paginate>
+    <div class="flex justify-center items-center p-2">
+      <span class="px-2">Show:</span>
+      <select v-model="limit" class="rounded text-lg border-2 border-gray-600">
+        <option value="50">50</option>
+        <option value="20">20</option>
+        <option value="10">10</option>
+      </select>
+    </div>
   </div>
 </template>
 
@@ -122,11 +173,20 @@ export default {
         salary: null,
         age: null
       },
+      search: null,
       page: 1,
       limit: 20,
       list: [],
       errors: []
     };
+  },
+  computed: {
+    currentPage: function() {
+      return this.list.slice(
+        this.page * this.limit - this.limit,
+        this.page * this.limit
+      );
+    }
   },
   components: {
     Zondicon,
@@ -159,27 +219,36 @@ export default {
     //     });
     // },
     async createEmployee() {
-      await axios
-        .post(`http://dummy.restapiexample.com/api/v1/create`, this.newEmployee)
-        .then(response => {
-          this.list.push({
-            id: response.data.id,
-            employee_name: response.data.employee_name,
-            employee_salary: response.data.employee_salary,
-            employee_age: response.data.employee_age
+      if (
+        this.newEmployee.name != null &&
+        this.newEmployee.name != null &&
+        this.newEmployee.name != null
+      ) {
+        await axios
+          .post(
+            `http://dummy.restapiexample.com/api/v1/create`,
+            this.newEmployee
+          )
+          .then(response => {
+            this.list.push({
+              id: response.data.id,
+              employee_name: response.data.name,
+              employee_salary: response.data.salary,
+              employee_age: response.data.age
+            });
+          })
+          .catch(error => {
+            this.errors.push(error);
+          })
+          .finally(() => {
+            this.newEmployee = {
+              name: null,
+              salary: null,
+              age: null
+            };
+            this.$forceUpdate();
           });
-        })
-        .catch(error => {
-          this.errors.push(error);
-        })
-        .finally(() => {
-          this.newEmployee = {
-            name: null,
-            salary: null,
-            age: null
-          };
-          this.$$forceUpdate();
-        });
+      }
     },
     async updateEmployee(employee) {
       !employee.name ? (employee.name = employee.employee_name) : "";
