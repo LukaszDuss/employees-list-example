@@ -183,8 +183,8 @@ export default {
             this.page * this.limit
           )
         : this.list.filter(employee => {
-            let regexp = `\\.*(${this.search}).*\\gi`
-            employee.employee_name.search(regexp) ? employee : "";
+            // let regexp = `\\.*(${this.search}).*\\gi`
+            return employee.employee_name.toLowerCase().includes(this.search.toLowerCase())
           });
     }
   },
