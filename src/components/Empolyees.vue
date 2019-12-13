@@ -28,13 +28,8 @@
         </div>
       </span>
       <div class="w-1/6 flex self-stretch justify-center">
-        <input
-        v-model="search"
-        class="flex h-8 text-sm rounded"
-        type="text"
-        placeholder="Search.."
-      />
-      <Zondicon v-show="!search" icon="search" class="w-6 fill-current text-gray-700 -ml-8" />
+        <input v-model="search" class="flex h-8 text-sm rounded" type="text" placeholder="Search.." />
+        <Zondicon v-show="!search" icon="search" class="w-6 fill-current text-gray-700 -ml-8" />
       </div>
     </div>
     <div class="items-center text-center p-8" v-if="!list.length">Loading content...</div>
@@ -182,10 +177,15 @@ export default {
   },
   computed: {
     currentPage: function() {
-      return this.list.slice(
-        this.page * this.limit - this.limit,
-        this.page * this.limit
-      );
+      return !this.search
+        ? this.list.slice(
+            this.page * this.limit - this.limit,
+            this.page * this.limit
+          )
+        : this.list.filter(employee => {
+            let regexp = `\\.*(${this.search}).*\\gi`
+            employee.employee_name.search(regexp) ? employee : "";
+          });
     }
   },
   components: {
@@ -221,8 +221,8 @@ export default {
     async createEmployee() {
       if (
         this.newEmployee.name != null &&
-        this.newEmployee.name != null &&
-        this.newEmployee.name != null
+        this.newEmployee.salary != null &&
+        this.newEmployee.age != null
       ) {
         await axios
           .post(
