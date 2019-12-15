@@ -213,11 +213,7 @@ export default {
     },
     async createEmployee() {
       try {
-        if (
-          this.newEmployee.name != null &&
-          this.newEmployee.salary != null &&
-          this.newEmployee.age != null
-        ) {
+        if (this.newEmployee.name != null) {
           let response = await axios.post(
             `http://dummy.restapiexample.com/api/v1/create`,
             this.newEmployee
@@ -240,31 +236,27 @@ export default {
       }
     },
     async updateEmployee(employee) {
-      !employee.name ? (employee.name = employee.employee_name) : "";
-      !employee.salary ? (employee.salary = employee.employee_salary) : "";
-      !employee.age ? (employee.age = employee.employee_age) : "";
-      let data = {
-        name: employee.name,
-        salary: employee.salary,
-        age: employee.age
-      };
-      await axios
-        .put(
+      try {
+        !employee.name ? (employee.name = employee.employee_name) : "";
+        !employee.salary ? (employee.salary = employee.employee_salary) : "";
+        !employee.age ? (employee.age = employee.employee_age) : "";
+        let data = {
+          name: employee.name,
+          salary: employee.salary,
+          age: employee.age
+        };
+        let response = await axios.put(
           `http://dummy.restapiexample.com/api/v1/update/${employee.id}`,
           data
-        )
-        .then(response => {
-          employee.employee_name = response.data.name;
-          employee.employee_salary = response.data.salary;
-          employee.employee_age = response.data.age;
-        })
-        .catch(error => {
-          this.errors.push(error);
-        })
-        .finally(() => {
-          this.toggleEditing(employee);
-          this.$forceUpdate();
-        });
+        );
+        employee.employee_name = response.data.name;
+        employee.employee_salary = response.data.salary;
+        employee.employee_age = response.data.age;
+        this.toggleEditing(employee);
+        this.$forceUpdate();
+      } catch (error) {
+        this.errors.push(error);
+      }
     },
     async deleteEmployee(id) {
       await axios
