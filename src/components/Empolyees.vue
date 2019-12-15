@@ -27,9 +27,9 @@
           </button>
         </div>
       </span>
-      <div class="w-1/6 flex self-stretch justify-center">
-        <input v-model="search" class="h-8 flex text-sm rounded" type="text" placeholder="Search.." />
-        <Zondicon v-show="!search" icon="search" class="w-6 -ml-8 fill-current text-gray-400" />
+      <div class="w-1/6 px-6 flex self-stretch items-center justify-end">
+        <input v-model="search" class="h-8 px-4 text-sm rounded" type="text" placeholder="Search.." />
+        <Zondicon v-show="!search" icon="search" class="w-4 -ml-8 fill-current text-gray-400" />
       </div>
     </div>
     <div class="p-8 items-center text-center" v-if="!list.length">Loading content...</div>
@@ -43,25 +43,25 @@
       <input
         v-else
         v-model="employee.name"
-        class="w-1/3 h-8 text-sm rounded"
+        class="w-1/3 h-8 p-4 text-center text-sm rounded"
         type="text"
-        placeholder="Please enter employee name..."
+        :placeholder="employee.employee_name"
       />
       <span v-if="!employee.updating" class="w-1/6">{{employee.employee_salary}}</span>
       <input
         v-else
         v-model="employee.salary"
-        class="w-1/6 h-8 text-sm rounded"
+        class="w-1/6 h-8 p-4 text-center text-sm rounded"
         type="text"
-        placeholder="Please enter employee salary..."
+        :placeholder="employee.employee_salary"
       />
       <span v-if="!employee.updating" class="w-1/6">{{employee.employee_age}}</span>
       <input
         v-else
         v-model="employee.age"
-        class="w-1/6 h-8 text-sm rounded"
+        class="w-1/6 h-8 p-4 text-center text-sm rounded"
         type="text"
-        placeholder="Please enter employee age..."
+        :placeholder="employee.employee_age"
       />
       <div class="w-1/6 flex px-2 justify-end text-gray-700">
         <button
@@ -96,19 +96,19 @@
       <span class="w-1/12 text-sm text-center">Add new:</span>
       <input
         v-model="newEmployee.name"
-        class="w-1/3 h-8 text-sm rounded"
+        class="w-1/3 h-8 px-4 text-sm rounded"
         type="text"
         placeholder="Please enter employee name..."
       />
       <input
         v-model="newEmployee.salary"
-        class="w-1/6 h-8 text-sm rounded"
+        class="w-1/6 h-8 px-4 text-sm rounded"
         type="text"
         placeholder="Please enter employee salary..."
       />
       <input
         v-model="newEmployee.age"
-        class="w-1/6 h-8 text-sm rounded"
+        class="w-1/6 h-8 px-4 text-sm rounded"
         type="text"
         placeholder="Please enter employee age..."
       />
