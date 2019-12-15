@@ -8,10 +8,10 @@
       <span class="w-1/6 flex flex-row justify-center">
         Employee Salary
         <div class="flex flex-col items-center pl-2">
-          <button class>
+          <button @click="sort= {by:'salary', direction:'decrementaly' }; sortList()">
             <Zondicon icon="cheveron-up" class="fill-current w-4" />
           </button>
-          <button class>
+          <button @click="sort= {by:'salary', direction:'incrementaly' }; sortList()">
             <Zondicon icon="cheveron-down" class="fill-current w-4" />
           </button>
         </div>
@@ -19,17 +19,17 @@
       <span class="w-1/6 flex flex-row justify-center">
         Employee Age
         <div class="flex flex-col pl-2">
-          <button class>
+          <button @click="sort= {by:'age', direction:'decrementaly' }; sortList()">
             <Zondicon icon="cheveron-up" class="fill-current w-4" />
           </button>
-          <button class>
+          <button @click="sort= {by:'age', direction:'incrementaly' }; sortList()">
             <Zondicon icon="cheveron-down" class="fill-current w-4" />
           </button>
         </div>
       </span>
       <div class="w-1/6 flex self-stretch justify-center">
         <input v-model="search" class="flex h-8 text-sm rounded" type="text" placeholder="Search.." />
-        <Zondicon v-show="!search" icon="search" class="w-6 fill-current text-gray-700 -ml-8" />
+        <Zondicon v-show="!search" icon="search" class="w-6 fill-current text-gray-400 -ml-8" />
       </div>
     </div>
     <div class="items-center text-center p-8" v-if="!list.length">Loading content...</div>
@@ -119,10 +119,10 @@
       </div>
     </div>
     <paginate
-      v-if="list.length"
+      v-if="employees.length"
       class="flex flex-row w-1/4 justify-between items-center mx-auto"
       v-model="page"
-      :page-count="Math.ceil(this.list.length/limit)"
+      :page-count="Math.ceil(this.employees.length/limit)"
       :page-range="3"
       :margin-pages="2"
       :prev-text="'Prev'"
@@ -168,6 +168,7 @@ export default {
         salary: null,
         age: null
       },
+      sort: { by: null, direction: null },
       search: null,
       page: 1,
       limit: 20,
@@ -176,16 +177,20 @@ export default {
     };
   },
   computed: {
-    currentPage: function() {
+    employees: function() {
       return !this.search
-        ? this.list.slice(
-            this.page * this.limit - this.limit,
-            this.page * this.limit
-          )
+        ? this.list
         : this.list.filter(employee => {
-            // let regexp = `\\.*(${this.search}).*\\gi`
-            return employee.employee_name.toLowerCase().includes(this.search.toLowerCase())
+            return employee.employee_name
+              .toLowerCase()
+              .includes(this.search.toLowerCase());
           });
+    },
+    currentPage: function() {
+      return this.employees.slice(
+        this.page * this.limit - this.limit,
+        this.page * this.limit
+      );
     }
   },
   components: {
@@ -197,57 +202,41 @@ export default {
   },
   methods: {
     async getEmployeesList() {
-      await axios
-        .get(`http://dummy.restapiexample.com/api/v1/employees`)
-        .then(response => {
-          this.list = response.data;
-        })
-        .catch(error => {
-          this.errors.push(error);
-        });
+      try {
+        let response = await axios.get(
+          `http://dummy.restapiexample.com/api/v1/employees`
+        );
+        this.list = response.data;
+      } catch (error) {
+        this.errors.push(error);
+      }
     },
-    // async getEmployee(id) {
-    //   await axios
-    //     .get(`http://dummy.restapiexample.com/api/v1/employees/${id}`)
-    //     .then(response => {
-    //       this.list = this.list.filter(employee =>
-    //         employee.id == id ? (employee = response.data) : employee
-    //       );
-    //     })
-    //     .catch(error => {
-    //       this.errors.push(error);
-    //     });
-    // },
     async createEmployee() {
-      if (
-        this.newEmployee.name != null &&
-        this.newEmployee.salary != null &&
-        this.newEmployee.age != null
-      ) {
-        await axios
-          .post(
+      try {
+        if (
+          this.newEmployee.name != null &&
+          this.newEmployee.salary != null &&
+          this.newEmployee.age != null
+        ) {
+          let response = await axios.post(
             `http://dummy.restapiexample.com/api/v1/create`,
             this.newEmployee
-          )
-          .then(response => {
-            this.list.push({
-              id: response.data.id,
-              employee_name: response.data.name,
-              employee_salary: response.data.salary,
-              employee_age: response.data.age
-            });
-          })
-          .catch(error => {
-            this.errors.push(error);
-          })
-          .finally(() => {
-            this.newEmployee = {
-              name: null,
-              salary: null,
-              age: null
-            };
-            this.$forceUpdate();
+          );
+          this.list.push({
+            id: response.data.id,
+            employee_name: response.data.name,
+            employee_salary: response.data.salary,
+            employee_age: response.data.age
           });
+          this.newEmployee = {
+            name: null,
+            salary: null,
+            age: null
+          };
+          this.$forceUpdate();
+        }
+      } catch (error) {
+        this.errors.push(error);
       }
     },
     async updateEmployee(employee) {
@@ -291,6 +280,27 @@ export default {
         .finally(() => {
           this.$forceUpdate();
         });
+    },
+    sortList() {
+      this.sort.by == "salary"
+        ? this.sort.direction == "incrementaly"
+          ? this.list.sort((a, b) => {
+              return a.employee_salary - b.employee_salary;
+            })
+          : this.list.sort((a, b) => {
+              return b.employee_salary - a.employee_salary;
+            })
+        : "";
+
+      this.sort.by == "age"
+        ? this.sort.direction == "incrementaly"
+          ? this.list.sort((a, b) => {
+              return a.employee_age - b.employee_age;
+            })
+          : this.list.sort((a, b) => {
+              return b.employee_age - a.employee_age;
+            })
+        : "";
     },
     toggleEditing(employee) {
       employee.updating === null ? (employee.updating = false) : "";
