@@ -27,9 +27,12 @@
           </button>
         </div>
       </span>
-      <div class="w-1/6 px-6 flex self-stretch items-center justify-end">
-        <input v-model="search" class="h-8 px-4 text-sm rounded" type="text" placeholder="Search.." />
-        <Zondicon v-show="!search" icon="search" class="w-4 -ml-8 fill-current text-gray-400" />
+      <div class="w-1/6 px-6 flex self-stretch items-center justify-end text-gray-600">
+        <input v-model="search" class="h-8 px-4 pr-10 text-sm text-gray-700 rounded" type="text" placeholder="Search.." />
+        <Zondicon v-if="!search" icon="search" class="w-4 -ml-8 fill-current " />
+        <button v-else class="flex -ml-8 " @click="search=null">
+          <Zondicon icon="close" class="w-4 fill-current " />
+        </button>
       </div>
     </div>
     <div class="p-8 items-center text-center" v-if="!list.length">Loading content...</div>
@@ -120,7 +123,7 @@
     </div>
     <paginate
       v-if="employeesList.length"
-      class="w-1/4 flex flex-row mx-auto justify-between items-center"
+      class="flex flex-row mx-auto justify-center items-center"
       v-model="page"
       :page-count="Math.ceil(this.employeesList.length/limit)"
       :page-range="3"
@@ -130,7 +133,7 @@
       :container-class="'text-gray-500'"
       :active-class="'px-2  text-gray-100 font-bold bg-blue-500 rounded focus:outline-nones'"
       :prev-class="'p-1 px-2 text-gray-200 bg-gray-600 rounded focus:outline-none'"
-      :page-class="'focus:outline-none'"
+      :page-class="'px-2 mx-2 focus:outline-none'"
       :next-class="'p-1 px-2 text-gray-200 bg-gray-600 rounded focus:outline-none'"
     >
       <span slot="prevContent">Changed previous button</span>
